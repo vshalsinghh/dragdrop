@@ -6,20 +6,40 @@ const DragnDrop = () => {
     const [error, setError] = useState('')
 
     const images = [
-        'https://ds055uzetaobb.cloudfront.net/uploads/eREixHfFwc-p1.png',
-        'https://ds055uzetaobb.cloudfront.net/uploads/zIwV9OLFiO-p2.png',
-        'https://ds055uzetaobb.cloudfront.net/uploads/A8r8kNZ762-p3.png',
-
+        {
+            src: 'https://ds055uzetaobb.cloudfront.net/uploads/eREixHfFwc-p1.png',
+            name: 'joseph'
+        },
+        {
+            src: 'https://ds055uzetaobb.cloudfront.net/uploads/zIwV9OLFiO-p2.png',
+            name: 'kevin'
+        },
+        {
+            src: 'https://ds055uzetaobb.cloudfront.net/uploads/A8r8kNZ762-p3.png',
+            name: 'ram'
+        },
+        {
+            src: 'https://ds055uzetaobb.cloudfront.net/uploads/A8r8kNZ762-p3.png',
+            name: 'shreyon'
+        }
     ]
-    const dragStart = e => {
+    const order = ['ram', 'joseph','shreyon', 'kevin']
+    // const [name, setName] = useState('')
+    const [currentDraggedName, setName] = useState('')
+    const [matching, setMatching] =useState(false)
+    const [borderStyle, setStyle] = useState({
+        border: '2px dashed rgb(187, 187, 187)'
+    })
+    
+
+    const dragStart = name => e => {
         e.dataTransfer.setData('drag_elem', e.target.id)
         setDragged(e.target.title)
-        console.log(currentDragged)
+        console.log('current dragged item name',name)
+        setName(name)
     }
     const allowDrop = e => {
         console.log('droppping title' , e.target.title)
-        // const data = e.dataTransfer.getData('drag_elem')
-        // console.log('data')
         if(e.target.title === 'allowDrop' || e.target.title === currentDragged){
             setError('')
             e.preventDefault();
@@ -29,52 +49,67 @@ const DragnDrop = () => {
         }
        
     }
-    const drop = e => {
+    const drop = (dropName) => (e) => {
         e.preventDefault();
+        // console.log('droppping to name', dropName)
         const data = e.dataTransfer.getData('drag_elem')
         e.target.appendChild(document.getElementById(data))
+        
+        //set matching true and false if name matches or not and only for top divs
+        if(currentDraggedName === dropName && e.target.title === 'allowDrop')
+        {
+            console.log('matching', e.target.style.borderColor)
+            setMatching(true)
+            setStyle({
+                border:'2px solid green'
+            })
+        }
+        else if(currentDraggedName === dropName && e.target.title !== 'allowDrop'){
+            console.log('not matching')
+            setMatching(false)
+            setStyle({
+                border:'2px dashed rgb(187, 187, 187)'
+            })
+        }
+        else{
+            setMatching(false)
+            setStyle({
+                border:'2px dashed rgb(187, 187, 187)'
+            })
+        }
     }
     return  (
         <div className='container'>
+        {matching ? <p>Matching</p> : <p>Not Matching</p>}
             <div className='div-list'>
-                <div className='box dropy' title='allowDrop' id='div1' onDrop={drop} onDragOver={ allowDrop}></div>
-                <div className='box dropy' title='allowDrop' id='div2' onDrop={drop} onDragOver={ allowDrop}></div>
-                <div className='box dropy' title='allowDrop' id='div3' onDrop={drop} onDragOver={ allowDrop}></div>
+                {   //top three divs
+                    order.map((name, index) => (
+                        <div key={index} className='box dropy' 
+                            title='allowDrop' 
+                            style={borderStyle}
+                            id={`div${index}`} 
+                            onDrop={drop(name)} 
+                            onDragOver={ allowDrop}>
+
+                            </div>
+                    ))
+                }
             </div>
             <div className='div-list' >
-                <div className='box draggy' title='allowDrop1' id='div4' onDrop={drop} onDragOverCapture={ allowDrop}>
-                    <div className='box dragged-item' 
-                        id='drag1'
-                        title='allowDrop1'
-                        draggable='true'
-                        onDragStart={dragStart}>
-                        <div className='brother-name'><strong>Joseph</strong></div>
-                        <img className='brother' src={images[0]} alt='img1' draggable='false'/>
-                    </div>
-                    
-                </div>
-                <div className='box draggy' title='allowDrop2' id='div5' onDrop={drop} onDragOverCapture={ allowDrop}>
-                    <div className='box dragged-item' 
-                        id='drag2'
-                        title='allowDrop2'
-                        draggable='true'
-                        onDragStart={dragStart}>
-                        <div className='brother-name'><strong>Kevin</strong></div>
-                        <img className='brother' src={images[1]} alt='img2' draggable='false'/>
-                    </div>
-                    
-                </div>
-                <div className='box draggy' title='allowDrop3' id='div6' onDrop={drop} onDragOverCapture={ allowDrop}>
-                    <div className='box dragged-item' 
-                        id='drag3'
-                        title='allowDrop3'
-                        draggable='true'
-                        onDragStart={dragStart}>
-                        <div className='brother-name'><strong>Nicholas</strong></div>
-                        <img className='brother' src={images[2]} alt='img3' draggable='false'/>
-                    </div>
-                    
-                </div>
+                {   //bottom three divs
+                    images.map((image, index) => (
+                        <div key={index} className='box draggy' title={`allowDrop${index}`} id={`div${index}`} onDrop={drop(image.name)} onDragOverCapture={ allowDrop}>
+                            <div className='box dragged-item' 
+                                id={`drag${index}`}
+                                title={`allowDrop${index}`}
+                                draggable='true'
+                                onDragStart={dragStart(image.name)}>
+                                <div className='brother-name'><strong>{image.name}</strong></div>
+                                <img className='brother' src={image.src} alt={`drag-images`} draggable='false'/>
+                            </div>
+                        </div>
+                    ))
+                }
             </div>
             {error ? <p>{error}</p> :<p>You are doing great</p>}
             
